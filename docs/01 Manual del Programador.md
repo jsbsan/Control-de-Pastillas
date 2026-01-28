@@ -6,7 +6,7 @@ Fecha: 28 Enero 2026
 
 Autor: Senior Technical Documentation Team
 
-1. Introducción y Stack Tecnológico
+### 1. Introducción y Stack Tecnológico
 
 Propósito del Software
 
@@ -18,27 +18,27 @@ El proyecto sigue una arquitectura monolítica desacoplada, donde el servidor en
 
 Backend:
 
-Lenguaje: Python 3.x
+    Lenguaje: Python 3.x
 
-Framework: http.server (Standard Library) para manejo de peticiones HTTP.
+    Framework: http.server (Standard Library) para manejo de peticiones HTTP.
 
-Persistencia: Sistema de archivos (JSON Flat Files).
+    Persistencia: Sistema de archivos (JSON Flat Files).
 
-Logging: Módulo logging nativo.
+    Logging: Módulo logging nativo.
 
 Frontend:
 
-Framework: React 18 (vía CDN, sin build-step).
+    Framework: React 18 (vía CDN, sin build-step).
 
-Transpilación: Babel Standalone (in-browser).
+    Transpilación: Babel Standalone (in-browser).
 
-Estilos: Tailwind CSS (vía CDN).
+    Estilos: Tailwind CSS (vía CDN).
 
-Audio: Web Audio API nativa (Osciladores para generación de alarmas).
+    Audio: Web Audio API nativa (Osciladores para generación de alarmas).
 
 Almacenamiento Local: localStorage para caché e identificación de usuario.
 
-2. Arquitectura del Sistema
+### 2. Arquitectura del Sistema
 
 El sistema utiliza un patrón Cliente-Servidor. El servidor actúa como un despachador de archivos estáticos y como una API JSON. No existe una capa de base de datos relacional; la persistencia se maneja mediante serialización directa de objetos a archivos JSON en el disco del servidor.
 
@@ -77,7 +77,7 @@ graph TD
     Router -.->|Write| Logger
 ``` 
 
-3. Guía de Configuración (Setup)
+### 3. Guía de Configuración (Setup)
 
 Requisitos Previos
 
@@ -116,13 +116,13 @@ Salida esperada:
 Acceso:
 Abra http://localhost:8000 en su navegador.
 
-4. Documentación de la API
+### 4. Documentación de la API
 
 La API no sigue estrictamente REST, pero utiliza verbos HTTP para operaciones CRUD sobre el archivo JSON del usuario.
 
 Endpoints
 
-1. Obtener Datos del Usuario
+#### 1. Obtener Datos del Usuario
 
 Recupera el estado de las tomas y configuración del día actual.
 
@@ -152,7 +152,7 @@ Respuesta Exitosa (200 OK):
 }
 
 
-2. Guardar/Actualizar Datos
+#### 2. Guardar/Actualizar Datos
 
 Sobrescribe el estado completo del usuario.
 
@@ -184,7 +184,7 @@ sequenceDiagram
 
 ``` 
 
-5. Modelo de Datos (Persistencia)
+### 5. Modelo de Datos (Persistencia)
 
 Dado que utilizamos archivos JSON, no existe un esquema relacional estricto (ERD), pero sí una estructura de documento definida. A continuación se muestra el esquema del objeto almacenado.
 
@@ -209,7 +209,7 @@ classDiagram
     UserFile *-- Dose : contiene 1..N
 ``` 
 
-6. Diagrama de Flujo del Programa (Frontend Logic)
+### 6. Diagrama de Flujo del Programa (Frontend Logic)
 
 Este diagrama detalla el ciclo de vida de la aplicación React, desde la carga inicial hasta el bucle de comprobación de alarmas.
 ``` mermaid
@@ -246,10 +246,10 @@ flowchart LR
     L --> M
 ``` 
 
-7. Flujo de CI/CD (Propuesto)
+### 7. Flujo de CI/CD (Propuesto)
 
 Aunque el proyecto actual es local, para un entorno de producción se recomienda el siguiente flujo de integración y despliegue continuo.
-``` 
+``` mermarid
 flowchart LR
     Dev[Desarrollador] -->|Git Push| Repo[Repositorio Git]
     
@@ -266,7 +266,7 @@ flowchart LR
     Deploy -->|Restart Service| Prod[Producción]
 ``` 
 
-8. Guía de Contribución
+### 8. Guía de Contribución
 
 Estándares de Código
 
