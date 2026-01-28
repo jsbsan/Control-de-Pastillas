@@ -1,10 +1,10 @@
 ## Manual Técnico: Sistema Control de Pastillas (PillTracker)
 
-Versión: 1.0.0
+    Versión: 1.0.0
 
-Fecha: 28 Enero 2026
+    Fecha: 28 Enero 2026
 
-Autor: Senior Technical Documentation Team
+    Autor: Mediante prompt con Gemini-Canvas  
 
 ### 1. Introducción y Stack Tecnológico
 
@@ -42,7 +42,7 @@ Almacenamiento Local: localStorage para caché e identificación de usuario.
 
 El sistema utiliza un patrón Cliente-Servidor. El servidor actúa como un despachador de archivos estáticos y como una API JSON. No existe una capa de base de datos relacional; la persistencia se maneja mediante serialización directa de objetos a archivos JSON en el disco del servidor.
 
-Diagrama de Arquitectura de Alto Nivel
+Diagrama de Arquitectura de Alto Nivel  
 
 Este diagrama ilustra la interacción entre el cliente (navegador), el servidor de aplicaciones Python y la capa de almacenamiento.
 
@@ -81,39 +81,39 @@ graph TD
 
 Requisitos Previos
 
-Python 3.8 o superior instalado en el entorno.
+    Python 3.8 o superior instalado en el entorno.
 
-Navegador web moderno con soporte para ES6 y Web Audio API.
+    Navegador web moderno con soporte para ES6 y Web Audio API.
 
-Conexión a internet (para cargar librerías CDN: React, Tailwind, Babel).
+    Conexión a internet (para cargar librerías CDN: React, Tailwind, Babel).
 
 Instalación y Ejecución
 
-Clonar el repositorio:
+    Clonar el repositorio:
 
-git clone <url-repositorio>
-cd pill-tracker
-
-
-Estructura de Directorios:
-Asegúrese de que server.py e index.html estén en la raíz.
-
-/
-├── index.html
-├── server.py
-└── data/ (Se creará automáticamente)
+    git clone https://github.com/jsbsan/Control-de-Pastillas
+    cd pill-tracker
 
 
-Iniciar el Servidor:
+Estructura de Directorios:  
+Asegúrese de que server.py e index.html estén en la raíz.  
+
+/   
+├── index.html  
+├── server.py  
+└── data/ (Se creará automáticamente)  
+
+
+Iniciar el Servidor:  
 Ejecute el script de Python. Esto levantará el servicio en el puerto 8000 por defecto.
 
 python server.py
 
 
-Salida esperada:
+Salida esperada:  
 💊 Servidor Python corriendo en http://localhost:8000
 
-Acceso:
+Acceso:  
 Abra http://localhost:8000 en su navegador.
 
 ### 4. Documentación de la API
@@ -136,20 +136,20 @@ id (string, requerido): Identificador único del usuario.
 
 Respuesta Exitosa (200 OK):
 
-{
-  "date": "Mon Jan 28 2026",
-  "doses": [
-    {
-      "id": 1,
-      "label": "Toma 1",
-      "taken": false,
-      "time": null,
-      "alarmTime": "14:00",
-      "alarmEnabled": true
-    }
-  ],
-  "lastUpdated": "2026-01-28T10:00:00.000Z"
-}
+{  
+  "date": "Mon Jan 28 2026",  
+  "doses": [  
+    {  
+      "id": 1,  
+      "label": "Toma 1",  
+      "taken": false,  
+      "time": null,  
+      "alarmTime": "14:00",  
+      "alarmEnabled": true  
+    }  
+  ],  
+  "lastUpdated": "2026-01-28T10:00:00.000Z"  
+}  
 
 
 #### 2. Guardar/Actualizar Datos
@@ -249,7 +249,7 @@ flowchart LR
 ### 7. Flujo de CI/CD (Propuesto)
 
 Aunque el proyecto actual es local, para un entorno de producción se recomienda el siguiente flujo de integración y despliegue continuo.
-``` mermarid
+``` mermaid
 flowchart LR
     Dev[Desarrollador] -->|Git Push| Repo[Repositorio Git]
     
