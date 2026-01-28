@@ -23,6 +23,14 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
         .no-select { -webkit-tap-highlight-color: transparent; user-select: none; }
         input[type="time"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
+        
+        /* Animación para el botón de alarma */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .animate-pulse-ring { animation: pulse-ring 2s infinite; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800">
@@ -32,8 +40,6 @@
         const { useState, useEffect, useRef } = React;
 
         // --- CONFIGURACIÓN ---
-        // Usamos una ruta relativa para que funcione tanto en localhost como por IP (móvil)
-        // El servidor Python sirve tanto el HTML como la API en el mismo puerto.
         const API_URL = '/api/pastillas'; 
         
         const getUserId = () => {
@@ -72,6 +78,11 @@
             const [triggeredAlarms, setTriggeredAlarms] = useState([]);
             const [isSyncing, setIsSyncing] = useState(false);
             const [syncError, setSyncError] = useState(null);
+            
+            // --- ESTADO PARA AUDIO INFINITO ---
+            const [playingAlarmDose, setPlayingAlarmDose] = useState(null); // Almacena la dosis que está sonando
+            const audioCtxRef = useRef(null); // Referencia al contexto de audio para cerrarlo
+            const alarmIntervalRef = useRef(null); // Referencia al intervalo para limpiarlo
             
             const userId = getUserId(); 
 
@@ -151,7 +162,80 @@
                 }
             };
 
-            // --- Alarmas y UI ---
+            // --- Lógica de Alarmas ---
+            
+            // Función para detener la alarma
+            const stopAlarm = () => {
+                if (alarmIntervalRef.current) {
+                    clearInterval(alarmIntervalRef.current);
+                    alarmIntervalRef.current = null;
+                }
+                if (audioCtxRef.current) {
+                    audioCtxRef.current.close().catch(e => console.error(e));
+                    audioCtxRef.current = null;
+                }
+                setPlayingAlarmDose(null);
+            };
+
+            // Función para iniciar la alarma (Bucle Infinito)
+            const startAlarm = (dose) => {
+                // Si ya está sonando algo, pararlo primero
+                stopAlarm();
+                setPlayingAlarmDose(dose);
+
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                
+                const context = new AudioContext();
+                audioCtxRef.current = context;
+
+                // Definimos la sintonía
+                const playPattern = () => {
+                    if (context.state === 'closed') return; // Seguridad
+                    
+                    const now = context.currentTime;
+                    const melody = [
+                        { offset: 0.0, freq: 523.25, type: 'sine' },   // Do
+                        { offset: 0.15, freq: 659.25, type: 'sine' },  // Mi
+                        { offset: 0.30, freq: 783.99, type: 'sine' },  // Sol
+                        { offset: 0.45, freq: 1046.50, type: 'square' } // Do (agudo)
+                    ];
+
+                    melody.forEach(note => {
+                        const osc = context.createOscillator();
+                        const gain = context.createGain();
+                        
+                        osc.connect(gain);
+                        gain.connect(context.destination);
+                        
+                        osc.type = note.type;
+                        osc.frequency.value = note.freq;
+                        
+                        const time = now + note.offset;
+                        
+                        // Envolvente
+                        gain.gain.setValueAtTime(0, time);
+                        gain.gain.linearRampToValueAtTime(0.1, time + 0.05);
+                        gain.gain.setValueAtTime(0.1, time + 0.1);
+                        gain.gain.linearRampToValueAtTime(0, time + 0.2); 
+                        
+                        osc.start(time);
+                        osc.stop(time + 0.25);
+                    });
+                };
+
+                // Reproducir inmediatamente
+                playPattern();
+                
+                // Y repetir cada 1.5 segundos INDEFINIDAMENTE hasta stopAlarm()
+                alarmIntervalRef.current = setInterval(playPattern, 1500);
+
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(`¡Hora de la pastilla!`, { body: `Te toca: ${dose.label}` });
+                }
+            };
+
+            // Efecto que comprueba la hora cada 5 segundos
             useEffect(() => {
                 if (!doses) return;
                 const interval = setInterval(() => {
@@ -163,8 +247,9 @@
 
                     doses.forEach(dose => {
                         const alarmKey = `${dose.id}-${currentTimeStr}-${currentDay}`;
+                        // Verificamos si la alarma debe sonar y no ha sido disparada hoy
                         if (dose.alarmEnabled && dose.alarmTime === currentTimeStr && !dose.taken && !triggeredAlarms.includes(alarmKey)) {
-                            triggerAlarm(dose);
+                            startAlarm(dose); // Iniciar bucle
                             setTriggeredAlarms(prev => [...prev, alarmKey]);
                         }
                     });
@@ -172,26 +257,15 @@
                 return () => clearInterval(interval);
             }, [doses, triggeredAlarms]);
 
-            const triggerAlarm = (dose) => {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = context.createOscillator();
-                const gain = context.createGain();
-                osc.connect(gain);
-                gain.connect(context.destination);
-                osc.type = "sine";
-                osc.frequency.value = 880; 
-                gain.gain.setValueAtTime(0.1, context.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 0.5);
-                osc.start();
-                osc.stop(context.currentTime + 0.5);
-
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification(`¡Hora de la pastilla!`, { body: `Te toca: ${dose.label}` });
-                }
-            };
 
             const toggleDose = (id) => {
                 if (!doses) return;
+                
+                // SI la alarma que suena corresponde a esta dosis, detenerla
+                if (playingAlarmDose && playingAlarmDose.id === id) {
+                    stopAlarm();
+                }
+
                 const newDoses = doses.map(dose => {
                     if (dose.id === id) {
                         const isTaking = !dose.taken;
@@ -312,7 +386,7 @@
                                         <div className="flex items-center gap-3"><div className="relative"><input type="time" value={dose.alarmTime} onChange={(e) => updateAlarmTime(dose.id, e.target.value)} className={`p-2 rounded-lg border-2 font-mono text-lg outline-none transition-colors ${dose.alarmEnabled ? 'border-blue-500 bg-blue-50 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-400'}`} /></div><button onClick={() => toggleAlarm(dose.id)} className={`w-12 h-7 rounded-full transition-colors relative flex items-center ${dose.alarmEnabled ? 'bg-blue-500' : 'bg-slate-300'}`} disabled={!dose.alarmTime}><div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ml-1 ${dose.alarmEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div></button></div>
                                     </div>
                                 ))}
-                                <button onClick={() => { if ("Notification" in window) Notification.requestPermission(); triggerAlarm({label: "Prueba"}); }} className="w-full mt-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-medium hover:bg-slate-300 transition-colors flex justify-center items-center gap-2"><IconBell className="w-4 h-4" /> Probar notificaciones</button>
+                                <button onClick={() => { if ("Notification" in window) Notification.requestPermission(); startAlarm({label: "Prueba"}); }} className="w-full mt-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-medium hover:bg-slate-300 transition-colors flex justify-center items-center gap-2"><IconBell className="w-4 h-4" /> Probar notificaciones</button>
                             </div>
                         )}
                         {activeTab === 'info' && (
@@ -328,6 +402,18 @@
                             </div>
                         )}
                     </main>
+                    
+                    {/* --- BOTÓN FLOTANTE PARA DETENER ALARMA --- */}
+                    {playingAlarmDose && (
+                        <div className="fixed bottom-24 left-4 right-4 z-50 animate-bounce-short">
+                            <button onClick={stopAlarm} className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl shadow-xl border-4 border-white/20 font-bold text-xl flex items-center justify-center gap-3 animate-pulse-ring">
+                                <IconBellOff className="w-8 h-8" />
+                                <span>DETENER ALARMA</span>
+                            </button>
+                            <p className="text-center text-red-600 font-bold mt-2 text-sm bg-white/90 py-1 rounded-full shadow-sm">Tomar: {playingAlarmDose.label}</p>
+                        </div>
+                    )}
+
                     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 z-50 max-w-md mx-auto rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)] select-none">
                         <div className="flex justify-around items-center">
                             <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 p-2 rounded-xl w-full transition-colors ${activeTab === 'home' ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}><IconHome className="w-6 h-6" /><span className="text-xs font-medium">Tomas</span></button>

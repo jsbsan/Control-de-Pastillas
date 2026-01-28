@@ -17,4 +17,8 @@ Prompt:
 14. La petición no uses php, usa mejor javascript  
 15. No quiero que uses node.js  
 16. ¿este servidor python se puede instalar en un movil android?  
-17. Necesito que añadas a este programa un control de log, que guarde los cambios que se realice.  
+17. Necesito que añadas a este programa un control de log, que guarde los cambios que se realice.   
+18. Quiero que mejores el sonido de la alarma, que se escuche una pequeña sintonia de beep y dure 15 segundos almenos.  
+19. ¿me puedes mostrar el fichero index.html como queda?  
+20. ¿puedes haceer que suene hasta que no se desactive?  
+

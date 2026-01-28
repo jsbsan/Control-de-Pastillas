@@ -1,0 +1,38 @@
+{
+  "date": "Wed Jan 28 2026",
+  "doses": [
+    {
+      "id": 1,
+      "label": "santa",
+      "taken": false,
+      "time": null,
+      "alarmTime": "11:40",
+      "alarmEnabled": true
+    },
+    {
+      "id": 2,
+      "label": "Toma 2",
+      "taken": false,
+      "time": null,
+      "alarmTime": "12:01",
+      "alarmEnabled": true
+    },
+    {
+      "id": 3,
+      "label": "Toma 3",
+      "taken": false,
+      "time": null,
+      "alarmTime": "11:45",
+      "alarmEnabled": false
+    },
+    {
+      "id": 4,
+      "label": "Toma 4",
+      "taken": false,
+      "time": null,
+      "alarmTime": "",
+      "alarmEnabled": false
+    }
+  ],
+  "lastUpdated": "2026-01-28T10:45:23.112Z"
+}
